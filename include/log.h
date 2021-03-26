@@ -19,12 +19,7 @@ public:
         FATAL
     };
 };
-// 日志格式 
-class LogFormatter{
-public:
-    typedef std::shared_ptr<LogFormatter> ptr;
-    std::string format(LogEvent::ptr event);
-};
+
 
 // 日志事件
 class LogEvent{
@@ -39,6 +34,30 @@ private:
     uint64_t m_time;             // 时间戳
     uint32_t m_elapse = 0;       // 程序启动到现在的毫秒数
     std::string m_content;       //内容
+};
+
+// 日志格式 
+class LogFormatter{
+public:
+    typedef std::shared_ptr<LogFormatter> ptr;
+    std::string format(LogEvent::ptr event);
+};
+
+
+
+// 日志输出地
+class LogAppender{
+public:
+    typedef std::shared_ptr<LogAppender> ptr;
+    virtual ~LogAppender(){
+
+    }
+    virtual void log(LogLevel::Level level,LogEvent::ptr event) = 0;
+    void setFormatter(LogFormatter::ptr formatter){m_formatter = formatter;}
+    LogFormatter::ptr getFormatter()const{return m_formatter;}
+protected:
+    LogLevel::Level m_level;
+    LogFormatter::ptr m_formatter;
 };
 
 // 日志输出器
@@ -67,20 +86,7 @@ private:
 };
 
 
-// 日志输出地
-class LogAppender{
-public:
-    typedef std::shared_ptr<LogAppender> ptr;
-    virtual ~LogAppender(){
 
-    }
-    virtual void log(LogLevel::Level level,LogEvent::ptr event) = 0;
-    void setFormatter(LogFormatter::ptr formatter){m_formatter = formatter;}
-    LogFormatter::ptr getFormatter()const{return m_formatter;}
-protected:
-    LogLevel::Level m_level;
-    LogFormatter::ptr m_formatter;
-};
 
 
 // 输出到控制台的Appender

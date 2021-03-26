@@ -30,7 +30,7 @@ void Logger::error(LogEvent::ptr event){
 }
 
 void Logger::addAppender(LogAppender::ptr appender){
-    
+    m_apds.insert(m_apds.begin(),appender);
 
 }
 void Logger::deleteAppender(LogAppender::ptr appender){
