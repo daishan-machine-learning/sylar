@@ -4,9 +4,11 @@
 #include<stdint.h>
 #include<memory>
 #include<list>
-#include<string>
 #include<fstream>
 #include<iostream>
+#include<vector>
+#include<sstream>
+#include<cassert>
 namespace sylar{
 // 日志级别
 class LogLevel{
@@ -18,6 +20,7 @@ public:
         ERROR,
         FATAL
     };
+    static const char* toString(LogLevel::Level level);
 };
 
 
@@ -25,23 +28,52 @@ public:
 class LogEvent{
 public:
     typedef std::shared_ptr<LogEvent> ptr;
-    LogEvent();
+    LogEvent(){}
+    const char* getFile()const{return m_file;}
+    uint32_t getLine()const{return m_line;}
+    uint32_t getThreadId()const{return m_threadId;}
+    uint32_t getFiberId()const{return m_fiberID;}
+    uint32_t getTime()const{return m_time;}
+    uint32_t getElapse()const{return m_elapse;}
+    std::string getContent()const{return m_content;}
 private:
     const char* m_file = nullptr;  // 文件名
     uint32_t m_line = 0;         // 行号
     uint32_t m_threadId = 0;     // 线程号
     uint32_t m_fiberID = 0;      // 协程号
     uint64_t m_time;             // 时间戳
-    uint32_t m_elapse = 0;       // 程序启动到现在的毫秒数
-    std::string m_content;       //内容
+    uint32_t m_elapse = 20;       // 程序启动到现在的毫秒数
+    std::string m_content="hello,log";       //内容
 };
 
 // 日志格式 
 class LogFormatter{
 public:
     typedef std::shared_ptr<LogFormatter> ptr;
-    std::string format(LogEvent::ptr event);
+    struct pattern_struct{ // 每个输入字符串的格式信息
+        std::string str;
+        std::string format;
+        int type;  // 0:error  1：normal
+    };
+   
+    // %t %m%n%threadId
+    std::string format(LogLevel::Level level,LogEvent::ptr event);
+    LogFormatter(std::string pattern);
+    std::vector<pattern_struct> init();  // pattern 的解析
+public:
+    class FormatItem{
+    public:
+        typedef std::shared_ptr<FormatItem> ptr;
+        virtual ~FormatItem(){};
+        virtual void format(std::ostream& os,LogLevel::Level level,LogEvent::ptr event)=0;
+    };
+   
+private:
+    std::string m_pattern;
+    std::vector<FormatItem::ptr> m_item;
 };
+
+
 
 
 
